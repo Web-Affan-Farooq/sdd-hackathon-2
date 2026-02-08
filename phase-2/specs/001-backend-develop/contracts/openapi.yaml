@@ -1,0 +1,537 @@
+openapi: 3.0.3
+info:
+  title: Backend Development Framework API
+  description: API for managing backend development environments, architectures, and API contracts
+  version: 1.0.0
+  contact:
+    name: Development Team
+    email: dev-team@example.com
+
+servers:
+  - url: https://api.backend-dev-framework.com/v1
+    description: Production server
+  - url: https://staging.api.backend-dev-framework.com/v1
+    description: Staging server
+  - url: http://localhost:8000/v1
+    description: Development server
+
+paths:
+  /environments:
+    get:
+      summary: List all development environments
+      description: Retrieve a list of all available development environments
+      operationId: listEnvironments
+      tags:
+        - Environments
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of environments to return
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+        - name: offset
+          in: query
+          description: Index to start returning results from
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: List of development environments
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  environments:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DevelopmentEnvironment'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      summary: Create a new development environment
+      description: Create a new standardized development environment configuration
+      operationId: createEnvironment
+      tags:
+        - Environments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEnvironmentRequest'
+      responses:
+        '201':
+          description: Development environment created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DevelopmentEnvironment'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /environments/{environmentId}:
+    get:
+      summary: Get a specific development environment
+      description: Retrieve details of a specific development environment
+      operationId: getEnvironment
+      tags:
+        - Environments
+      parameters:
+        - name: environmentId
+          in: path
+          required: true
+          description: ID of the environment to retrieve
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Development environment details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DevelopmentEnvironment'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    put:
+      summary: Update a development environment
+      description: Update the configuration of an existing development environment
+      operationId: updateEnvironment
+      tags:
+        - Environments
+      parameters:
+        - name: environmentId
+          in: path
+          required: true
+          description: ID of the environment to update
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateEnvironmentRequest'
+      responses:
+        '200':
+          description: Development environment updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DevelopmentEnvironment'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      summary: Delete a development environment
+      description: Remove a development environment configuration
+      operationId: deleteEnvironment
+      tags:
+        - Environments
+      parameters:
+        - name: environmentId
+          in: path
+          required: true
+          description: ID of the environment to delete
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Development environment deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /architectures:
+    get:
+      summary: List all service architectures
+      description: Retrieve a list of all available service architecture patterns
+      operationId: listArchitectures
+      tags:
+        - Architectures
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of architectures to return
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+        - name: offset
+          in: query
+          description: Index to start returning results from
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: List of service architectures
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  architectures:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ServiceArchitecture'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api-contracts:
+    get:
+      summary: List all API contracts
+      description: Retrieve a list of all standardized API contracts
+      operationId: listApiContracts
+      tags:
+        - ApiContracts
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of contracts to return
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+        - name: offset
+          in: query
+          description: Index to start returning results from
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: List of API contracts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  contracts:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/APIContract'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+components:
+  schemas:
+    DevelopmentEnvironment:
+      type: object
+      required:
+        - id
+        - name
+        - runtime_version
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the environment
+        name:
+          type: string
+          description: Name of the environment
+          example: "Python Backend Dev"
+        description:
+          type: string
+          description: Optional description of the environment
+          example: "Standard Python backend development environment"
+        runtime_version:
+          type: string
+          description: Version of the runtime/language
+          example: "Python 3.11"
+        dependencies:
+          type: object
+          description: List of required dependencies
+          additionalProperties: true
+        ide_config:
+          type: object
+          description: IDE configuration settings
+          additionalProperties: true
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the environment was created
+        updated_at:
+          type: string
+          format: date-time
+          description: Timestamp when the environment was last updated
+
+    CreateEnvironmentRequest:
+      type: object
+      required:
+        - name
+        - runtime_version
+      properties:
+        name:
+          type: string
+          description: Name of the environment
+          example: "Python Backend Dev"
+        description:
+          type: string
+          description: Optional description of the environment
+          example: "Standard Python backend development environment"
+        runtime_version:
+          type: string
+          description: Version of the runtime/language
+          example: "Python 3.11"
+        dependencies:
+          type: object
+          description: List of required dependencies
+          additionalProperties: true
+        ide_config:
+          type: object
+          description: IDE configuration settings
+          additionalProperties: true
+
+    UpdateEnvironmentRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Updated name of the environment
+          example: "Python Backend Dev"
+        description:
+          type: string
+          description: Updated description of the environment
+          example: "Standard Python backend development environment"
+        runtime_version:
+          type: string
+          description: Updated version of the runtime/language
+          example: "Python 3.11"
+        dependencies:
+          type: object
+          description: Updated list of required dependencies
+          additionalProperties: true
+        ide_config:
+          type: object
+          description: Updated IDE configuration settings
+          additionalProperties: true
+
+    ServiceArchitecture:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the architecture
+        name:
+          type: string
+          description: Name of the architecture
+          example: "Microservices with Event Sourcing"
+        description:
+          type: string
+          description: Detailed description of the architecture
+          example: "Microservices architecture with event sourcing pattern for scalability"
+        patterns:
+          type: array
+          description: List of architectural patterns
+          items:
+            type: string
+          example: ["Event Sourcing", "CQRS", "API Gateway"]
+        best_practices:
+          type: array
+          description: List of recommended best practices
+          items:
+            type: string
+          example: ["Twelve-Factor App", "Infrastructure as Code", "Observability"]
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the architecture was created
+        updated_at:
+          type: string
+          format: date-time
+          description: Timestamp when the architecture was last updated
+
+    APIContract:
+      type: object
+      required:
+        - id
+        - name
+        - version
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the API contract
+        name:
+          type: string
+          description: Name of the API
+          example: "User Management API"
+        version:
+          type: string
+          description: Version of the API
+          example: "v1"
+        endpoints:
+          type: array
+          description: List of API endpoints with specifications
+          items:
+            $ref: '#/components/schemas/Endpoint'
+        request_format:
+          type: string
+          description: Request format (e.g., JSON)
+          example: "application/json"
+        response_format:
+          type: string
+          description: Response format (e.g., JSON)
+          example: "application/json"
+        error_format:
+          type: object
+          description: Standard error format
+          additionalProperties: true
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the contract was created
+        updated_at:
+          type: string
+          format: date-time
+          description: Timestamp when the contract was last updated
+
+    Endpoint:
+      type: object
+      required:
+        - path
+        - method
+        - description
+      properties:
+        path:
+          type: string
+          description: API endpoint path
+          example: "/users"
+        method:
+          type: string
+          description: HTTP method
+          enum: [GET, POST, PUT, PATCH, DELETE]
+        description:
+          type: string
+          description: Description of the endpoint
+          example: "Retrieve a list of users"
+        request_schema:
+          type: object
+          description: Schema for the request body
+          additionalProperties: true
+        response_schema:
+          type: object
+          description: Schema for the response body
+          additionalProperties: true
+
+    Pagination:
+      type: object
+      properties:
+        offset:
+          type: integer
+          description: Starting index of results
+        limit:
+          type: integer
+          description: Maximum number of results returned
+        total:
+          type: integer
+          description: Total number of available results
+
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          description: Application-specific error code
+        message:
+          type: string
+          description: Human-readable error message
+        details:
+          type: object
+          description: Additional error details
+          additionalProperties: true
+
+  responses:
+    BadRequest:
+      description: Bad request - invalid parameters or payload
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Unauthorized - authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Conflict:
+      description: Conflict - resource already exists
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token for authentication
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Environments
+    description: Operations related to development environments
+  - name: Architectures
+    description: Operations related to service architectures
+  - name: ApiContracts
+    description: Operations related to API contracts
