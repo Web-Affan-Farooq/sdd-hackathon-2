@@ -1,6 +1,8 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from ..config.settings import settings
 from ..api.v1.api_router import api_router
+from ..services.monitoring import monitoring_service
 
 
 def create_app() -> FastAPI:
@@ -30,10 +32,31 @@ def create_app() -> FastAPI:
     # Include API routes
     app.include_router(api_router, prefix="/v1")
 
+    @app.middleware("http")
+    async def db_session_middleware(request: Request, call_next):
+        """Middleware to record requests for monitoring."""
+        monitoring_service.record_request()
+        try:
+            response = await call_next(request)
+            return response
+        except Exception as e:
+            monitoring_service.record_error()
+            raise e
+
     @app.get("/health")
     def health_check():
         """Health check endpoint to verify the application is running."""
-        return {"status": "healthy", "environment": settings.environment}
+        health_status = monitoring_service.get_health_status()
+        return {
+            "status": health_status.status,
+            "environment": settings.environment,
+            "details": health_status.details
+        }
+
+    @app.get("/metrics")
+    def metrics():
+        """Metrics endpoint for monitoring."""
+        return monitoring_service.get_performance_metrics()
 
     return app
 

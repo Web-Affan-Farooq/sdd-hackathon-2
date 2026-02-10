@@ -1,0 +1,69 @@
+import logging
+from logging.config import dictConfig
+from ..config.settings import settings
+
+
+def setup_logging():
+    """
+    Configure logging based on the environment settings.
+    """
+    log_config = {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {
+            "default": {
+                "()": "uvicorn.logging.DefaultFormatter",
+                "fmt": "%(levelprefix)s %(asctime)s %(message)s",
+                "use_colors": None,
+            },
+            "access": {
+                "()": "uvicorn.logging.AccessFormatter",
+                "fmt": '%(levelprefix)s %(asctime)s %(client_addr)s - "%(request_line)s" %(status_code)s',
+            },
+        },
+        "handlers": {
+            "default": {
+                "formatter": "default",
+                "class": "logging.StreamHandler",
+                "stream": "ext://sys.stderr",
+            },
+            "access": {
+                "formatter": "access",
+                "class": "logging.StreamHandler",
+                "stream": "ext://sys.stderr",
+            },
+        },
+        "loggers": {
+            "uvicorn": {
+                "handlers": ["default"],
+                "level": settings.log_level,
+            },
+            "uvicorn.error": {
+                "level": settings.log_level,
+            },
+            "uvicorn.access": {
+                "handlers": ["access"],
+                "level": settings.log_level,
+                "propagate": False,
+            },
+            # Custom logger for our application
+            "backend": {
+                "handlers": ["default"],
+                "level": settings.log_level,
+                "propagate": False,
+            }
+        },
+    }
+    
+    dictConfig(log_config)
+
+
+# Initialize logging when module is imported
+setup_logging()
+
+
+def get_logger(name: str) -> logging.Logger:
+    """
+    Get a logger with the specified name.
+    """
+    return logging.getLogger(f"backend.{name}")
